@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/app", "dest": "/public/app/index.html" },
+    { "src": "/app/(.*)", "dest": "/public/app/$1" },
+    { "src": "/(zc-[^/]+\\.html)", "dest": "/public/$1" },
+    { "src": "/(.*\\.(html|css|js|png|jpg|jpeg|svg|ico|mp3|webp))", "dest": "/public/$1" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
+  ]
+}

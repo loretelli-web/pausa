@@ -389,6 +389,19 @@
 <script>
   let usuarioActual = { icon:'', label:'', contexto:'' };
   let chipsActivos = [];
+
+  // Registro anónimo de uso — alimenta el reporte mensual de RR.HH.
+  // NO guarda el texto libre ni ningún dato que identifique a la persona: solo perfil y estados elegidos.
+  const REGISTRO_URL = 'https://script.google.com/macros/s/AKfycbxuyB5HKvnW1OKHdXcqbU4S-R7FD71jQLEwM2yYEhqnLm8XkQJlC43CpfMkcNi5R8Ae/exec';
+  function registrarEvento(evento, perfil, estados){
+    try{
+      fetch(REGISTRO_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({ evento: evento, perfil: perfil||'', estados: estados||'' })
+      }).catch(function(){});
+    }catch(e){}
+  }
   let ejercicioAnterior = '';
   let situacionPendiente = '';
   let usoCount = parseInt(localStorage.getItem('bv_usos') || '0');
@@ -493,6 +506,7 @@
 
   function abrirPausa(i) {
     pausaActual = PAUSAS[i];
+    registrarEvento('pausa_activa', '', pausaActual.nombre);
     pausaPaso = 0;
     document.getElementById('pausa-titulo').textContent = pausaActual.nombre;
     mostrarPasoPausa();
@@ -605,12 +619,14 @@
 
       // Red de seguridad: el mensaje expresa riesgo → derivación primero, ejercicio como opción secundaria.
       if (data.tipo === 'derivar') {
+        registrarEvento('derivacion', usuarioActual.label, chipsActivos.join(' | '));
         mostrarDerivacion(data.mensaje, texto);
         return;
       }
 
       usoCount++;
       localStorage.setItem('bv_usos', usoCount.toString());
+      registrarEvento('ejercicio', usuarioActual.label, chipsActivos.join(' | '));
       renderEjercicio(data.texto || '');
       goTo('s-response');
     } catch(e) {
@@ -678,6 +694,7 @@
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
+      registrarEvento('ejercicio', usuarioActual.label, '');
       renderEjercicio(data.texto || '');
       goTo('s-response');
     } catch(e) {
